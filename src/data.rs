@@ -1,3 +1,5 @@
+use std::fs;
+
 // Loading and saving game data.
 use crate::board::Board;
 
@@ -93,8 +95,37 @@ pub fn parse_ship_line(line: &str) -> Option<ShipSpec> {
 //     Skipped N invalid line(s) in <path>
 // to stderr (eprintln!). If the file cannot be read, print the error to
 // stderr and return an empty Vec.
-pub fn load_fleet(_path: &str) -> Vec<ShipSpec> {
-    todo!("Task 2: load_fleet")
+pub fn load_fleet(path: &str) -> Vec<ShipSpec> {
+    let content = match fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(err) => {
+            eprintln!("Error reading line in {}: {}", path, err);
+            return Vec::new();
+        }
+    };
+   
+    let mut fleet = Vec::new();
+    let mut invalid_count = 0;
+
+    for line in content.lines() {
+         let trimmed = line.trim();
+
+         if trimmed.is_empty() || trimmed.starts_with('#') {
+             continue;
+         }
+
+         if let Some(ship) = parse_ship_line(&line) {
+             fleet.push(ship);
+         } else {
+             invalid_count += 1;
+         }
+     }
+
+     if invalid_count > 0 {
+         eprintln!("Skipped {} invalid line(s) in {}", invalid_count, path);
+     }
+
+     fleet
 }
 
 // Task 3.
